@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { MagnifyingGlass, Plus } from '@phosphor-icons/react';
 
-export const Header: React.FC = () => {
+interface HeaderProps {
+    onAddClick?: () => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ onAddClick }) => {
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     useEffect(() => {
@@ -65,6 +69,7 @@ export const Header: React.FC = () => {
 
                 {/* ADD NEW BUTTON */}
                 <button
+                    onClick={onAddClick}
                     className="font-tech shadow-hard-red"
                     style={{
                         backgroundColor: 'var(--color-ev-yellow)',

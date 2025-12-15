@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import brandLogo from '../assets/brand_logo.png';
+import { api } from '../api';
 import { Lightning, ArrowRight } from '@phosphor-icons/react';
 
 interface AuthProps {
@@ -11,13 +12,18 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate login delay
-        setTimeout(() => {
+        try {
+            await api.login(email, password);
             onLogin();
-        }, 1000);
+        } catch (err) {
+            console.error(err);
+            alert('Login failed. Please check your credentials.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
