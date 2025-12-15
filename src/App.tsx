@@ -5,11 +5,14 @@ import { Dashboard } from './components/Dashboard';
 import { VaultList } from './components/VaultList';
 import { PasswordGenerator } from './components/PasswordGenerator';
 import { Auth } from './components/Auth';
+import { AddEntryModal } from './components/AddEntryModal';
 import './index.css';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [view, setView] = useState('dashboard');
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   if (!isAuthenticated) {
     return <Auth onLogin={() => setIsAuthenticated(true)} />;
@@ -25,7 +28,7 @@ function App() {
 
       <main style={{ marginLeft: 'var(--sidebar-width)', flex: 1, display: 'flex', flexDirection: 'column' }} className="diagonal-stripe">
 
-        <Header />
+        <Header onAddClick={() => setIsAddModalOpen(true)} />
 
         {view === 'dashboard' && <Dashboard />}
 
@@ -45,6 +48,26 @@ function App() {
           </div>
         )}
       </main>
+
+      {isAddModalOpen && (
+        <AddEntryModal
+          onClose={() => setIsAddModalOpen(false)}
+          onSuccess={() => {
+            // Refresh logic - simplest way is to force re-mount of VaultList or window reload
+            // For MVP, window reload or context is robust. 
+            // Better: Pass a refresh signal to VaultList.
+            // Doing refresh signal via props would require lifting state. 
+            // Hack/Simple: window.location.reload(); 
+            // Best for now: Switch view or just let user see it next time, 
+            // OR we can lift items state to App.tsx but that's a larger refactor.
+            // Let's toggle view to trigger re-mount if currently on vault.
+            if (view === 'vault') {
+              setView('dashboard');
+              setTimeout(() => setView('vault'), 10);
+            }
+          }}
+        />
+      )}
     </div>
   );
 }

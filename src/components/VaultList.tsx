@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MOCK_ITEMS } from '../data/mock';
+import { api } from '../api';
 import type { VaultItem } from '../data/mock';
 import { TOTPDisplay } from './TOTPDisplay';
 import { Copy, Eye, EyeSlash, CaretRight, Warning, Globe, CreditCard, Note, ArrowLeft } from '@phosphor-icons/react';
@@ -10,13 +10,33 @@ export const VaultList: React.FC = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
+    const [items, setItems] = useState<VaultItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
         window.addEventListener('resize', handleResize);
+
+        // Fetch data
+        const loadData = async () => {
+            try {
+                const data = await api.getEntries();
+                setItems(data);
+            } catch (err) {
+                console.error(err);
+                setError('Failed to load vault items');
+                // Fallback to empty or mock if desired, but for now show error
+            } finally {
+                setLoading(false);
+            }
+        };
+        loadData();
+
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const filteredItems = MOCK_ITEMS.filter(item =>
+    const filteredItems = items.filter(item =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.username?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -33,6 +53,22 @@ export const VaultList: React.FC = () => {
             default: return <Globe weight="fill" size={24} />;
         }
     };
+
+    if (loading) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'white' }}>
+                <div className="font-tech">LOADING DATABASE...</div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', color: 'var(--color-ev-red)' }}>
+                <div className="font-tech">SYSTEM ERROR: {error}</div>
+            </div>
+        );
+    }
 
     return (
         <div style={{ padding: '2rem', display: 'flex', height: 'calc(100vh - 80px)', gap: '2rem', position: 'relative' }}>
