@@ -1,13 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Lightning, Copy, CaretRight, Warning } from '@phosphor-icons/react';
 import { PasswordGenerator } from './PasswordGenerator';
 
 export const Dashboard: React.FC = () => {
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     return (
-        <div style={{ padding: '2rem', display: 'grid', gridTemplateColumns: 'repeat(12, 1fr)', gap: '1.5rem' }}>
+        <div style={{
+            padding: '2rem',
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(12, 1fr)',
+            gap: '1.5rem'
+        }}>
 
             {/* STATS ROW */}
-            <div style={{ gridColumn: 'span 12', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1.5rem', marginBottom: '1rem' }}>
+            <div style={{
+                gridColumn: isMobile ? 'span 1' : 'span 12',
+                display: 'grid',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(4, 1fr)',
+                gap: '1.5rem',
+                marginBottom: '1rem'
+            }}>
 
                 {/* Stat 1: Total Voltage */}
                 <div style={{ backgroundColor: '#171717', border: '1px solid #262626', padding: '1.5rem', position: 'relative', overflow: 'hidden' }}>
@@ -22,7 +41,17 @@ export const Dashboard: React.FC = () => {
                 </div>
 
                 {/* Stat 2: Security Health */}
-                <div style={{ gridColumn: 'span 2', backgroundColor: '#171717', border: '1px solid #262626', padding: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'relative', overflow: 'hidden' }}>
+                <div style={{
+                    gridColumn: isMobile ? 'span 1' : 'span 2',
+                    backgroundColor: '#171717',
+                    border: '1px solid #262626',
+                    padding: '1.5rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    overflow: 'hidden'
+                }}>
                     <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, transparent, rgba(38, 38, 38, 0.3), transparent)', transform: 'skewX(-12deg)' }}></div>
                     <div style={{ position: 'relative', zIndex: 10 }}>
                         <div className="font-tech" style={{ color: '#737373', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '0.5rem' }}>
@@ -34,7 +63,7 @@ export const Dashboard: React.FC = () => {
                         <div style={{ fontSize: '0.75rem', color: '#a3a3a3' }}>2 Weak Passwords detected</div>
                     </div>
                     {/* Battery Visualizer */}
-                    <div style={{ display: 'flex', gap: '4px', position: 'relative', zIndex: 10 }}>
+                    <div style={{ display: isMobile ? 'none' : 'flex', gap: '4px', position: 'relative', zIndex: 10 }}>
                         {[1, 2, 3, 4].map(i => (
                             <div key={i} style={{ width: '8px', height: '32px', backgroundColor: 'var(--color-ev-yellow)', transform: 'skewX(-15deg)' }}></div>
                         ))}
@@ -56,7 +85,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* RECENT CELLS */}
-            <div style={{ gridColumn: 'span 8', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ gridColumn: isMobile ? 'span 1' : 'span 8', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '0.5rem' }}>
                     <h2 className="font-tech" style={{ fontSize: '1.25rem', fontWeight: 700, textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         <Lightning weight="fill" className="text-yellow" /> Recent Access
@@ -72,7 +101,7 @@ export const Dashboard: React.FC = () => {
             </div>
 
             {/* SIDE WIDGETS */}
-            <div style={{ gridColumn: 'span 4' }}>
+            <div style={{ gridColumn: isMobile ? 'span 1' : 'span 4' }}>
                 <PasswordGenerator />
             </div>
 
@@ -123,10 +152,6 @@ const RecentCell: React.FC<RecentCellProps> = ({ name, subtitle, logo, logoBg, l
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-                <div style={{ display: 'none', flexDirection: 'column', gap: '4px' }}>
-                    {/* Hidden on mobile, implementing strength bars later if needed */}
-                </div>
-
                 <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     {isLowPower && (
                         <div className="blink" style={{
@@ -141,15 +166,12 @@ const RecentCell: React.FC<RecentCellProps> = ({ name, subtitle, logo, logoBg, l
                         </div>
                     )}
                     <ActionButton icon={<Copy weight="bold" />} hoverColor="var(--color-ev-yellow)" />
-                    <ActionButton icon={isLowPower ? <Warning weight="bold" /> : <CarethRight weight="bold" />} hoverColor="var(--color-ev-red)" />
+                    <ActionButton icon={isLowPower ? <Warning weight="bold" /> : <CaretRight weight="bold" />} hoverColor="var(--color-ev-red)" />
                 </div>
             </div>
         </div>
     );
 };
-
-// Fix CaretRight typo and missing ActionButton
-const CarethRight = CaretRight;
 
 const ActionButton = ({ icon, hoverColor }: { icon: React.ReactNode, hoverColor: string }) => (
     <button

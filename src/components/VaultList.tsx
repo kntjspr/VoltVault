@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MOCK_ITEMS } from '../data/mock';
 import type { VaultItem } from '../data/mock';
 import { TOTPDisplay } from './TOTPDisplay';
-import { Copy, Eye, EyeSlash, CaretRight, Warning, Globe, CreditCard, Note } from '@phosphor-icons/react';
+import { Copy, Eye, EyeSlash, CaretRight, Warning, Globe, CreditCard, Note, ArrowLeft } from '@phosphor-icons/react';
 
 export const VaultList: React.FC = () => {
     const [selectedItem, setSelectedItem] = useState<VaultItem | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     const filteredItems = MOCK_ITEMS.filter(item =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -28,9 +35,16 @@ export const VaultList: React.FC = () => {
     };
 
     return (
-        <div style={{ padding: '2rem', display: 'flex', height: 'calc(100vh - 80px)', gap: '2rem' }}>
+        <div style={{ padding: '2rem', display: 'flex', height: 'calc(100vh - 80px)', gap: '2rem', position: 'relative' }}>
+
             {/* List Column */}
-            <div style={{ width: '400px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{
+                width: isMobile ? '100%' : '400px',
+                flexDirection: 'column',
+                gap: '1rem',
+                // If mobile and item selected, hide this column (show detail instead)
+                display: (isMobile && selectedItem) ? 'none' : 'flex'
+            }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <h2 className="font-tech" style={{ fontSize: '1.25rem', fontWeight: 700, textTransform: 'uppercase', color: 'white' }}>
                         Vault Database
@@ -107,36 +121,60 @@ export const VaultList: React.FC = () => {
             </div>
 
             {/* Detail Column */}
-            <div style={{ flex: 1, backgroundColor: '#111', border: '1px solid #262626', display: 'flex', flexDirection: 'column' }}>
+            <div style={{
+                flex: 1,
+                backgroundColor: '#111',
+                border: '1px solid #262626',
+                display: isMobile && !selectedItem ? 'none' : 'flex',
+                flexDirection: 'column',
+                // Mobile Overlay styles
+                position: isMobile ? 'fixed' : 'relative',
+                top: isMobile ? 0 : 'auto',
+                left: isMobile ? 0 : 'auto',
+                width: isMobile ? '100%' : 'auto',
+                height: isMobile ? '100vh' : 'auto',
+                zIndex: isMobile ? 60 : 1
+            }}>
                 {selectedItem ? (
                     <>
                         {/* Detail Header */}
-                        <div className="diagonal-stripe" style={{ padding: '2rem', borderBottom: '1px solid #262626', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                            <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-                                <div style={{
-                                    width: '80px', height: '80px',
-                                    backgroundColor: 'var(--color-ev-red)',
-                                    color: 'black',
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    fontSize: '2.5rem',
-                                    fontWeight: 700,
-                                    boxShadow: '4px 4px 0px 0px var(--color-ev-yellow)'
-                                }}>
-                                    {getIcon(selectedItem.type)}
-                                </div>
-                                <div>
-                                    <h1 className="font-tech" style={{ fontSize: '2rem', fontWeight: 700, lineHeight: 1, marginBottom: '0.25rem' }}>{selectedItem.name}</h1>
-                                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                                        <span className="text-yellow" style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{selectedItem.type}</span>
-                                        <span style={{ fontSize: '0.75rem', color: '#555' }}>|</span>
-                                        <span style={{ fontSize: '0.75rem', color: '#737373', fontFamily: 'monospace' }}>ID: {selectedItem.id}</span>
+                        <div className="diagonal-stripe" style={{ padding: '2rem', borderBottom: '1px solid #262626', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            {/* Mobile Back Button */}
+                            {isMobile && (
+                                <button onClick={() => setSelectedItem(null)} style={{ background: 'none', border: 'none', color: 'white', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                                    <ArrowLeft weight="bold" /> BACK TO DATABASE
+                                </button>
+                            )}
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                                    <div style={{
+                                        width: '80px', height: '80px',
+                                        backgroundColor: 'var(--color-ev-red)',
+                                        color: 'black',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: '2.5rem',
+                                        fontWeight: 700,
+                                        boxShadow: '4px 4px 0px 0px var(--color-ev-yellow)'
+                                    }}>
+                                        {getIcon(selectedItem.type)}
+                                    </div>
+                                    <div>
+                                        <h1 className="font-tech" style={{ fontSize: '2rem', fontWeight: 700, lineHeight: 1, marginBottom: '0.25rem' }}>{selectedItem.name}</h1>
+                                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                                            <span className="text-yellow" style={{ fontSize: '0.875rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{selectedItem.type}</span>
+                                            <span style={{ fontSize: '0.75rem', color: '#555' }}>|</span>
+                                            <span style={{ fontSize: '0.75rem', color: '#737373', fontFamily: 'monospace' }}>ID: {selectedItem.id}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <button className="btn" style={{ padding: '0.5rem 1.5rem', border: '1px solid #404040', color: '#a3a3a3' }}>EDIT</button>
-                                <button className="btn" style={{ padding: '0.5rem 1.5rem', border: '1px solid #404040', color: 'var(--color-ev-red)' }}>DELETE</button>
+                                {!isMobile && (
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <button className="btn" style={{ padding: '0.5rem 1.5rem', border: '1px solid #404040', color: '#a3a3a3' }}>EDIT</button>
+                                        <button className="btn" style={{ padding: '0.5rem 1.5rem', border: '1px solid #404040', color: 'var(--color-ev-red)' }}>DELETE</button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
