@@ -128,7 +128,7 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                             onMouseEnter={(e) => !isLoading && (e.currentTarget.style.backgroundColor = 'var(--color-ev-yellow)', e.currentTarget.style.color = 'black')}
                             onMouseLeave={(e) => !isLoading && (e.currentTarget.style.backgroundColor = 'var(--color-ev-red)', e.currentTarget.style.color = 'white')}
                         >
-                            {isLoading ? 'Authorizing...' : 'Initialize Session'}
+                            {isLoading ? 'Authorizing...' : 'Login'}
                             {!isLoading && <ArrowRight weight="bold" />}
                         </button>
                     </form>

@@ -137,7 +137,7 @@ const RecentCell: React.FC<RecentCellProps> = ({ name, subtitle, logo, logoBg, l
                             padding: '0.25rem 0.5rem',
                             letterSpacing: '0.05em'
                         }}>
-                            LOW POWER
+                            COMPROMISED
                         </div>
                     )}
                     <ActionButton icon={<Copy weight="bold" />} hoverColor="var(--color-ev-yellow)" />
