@@ -1,10 +1,5 @@
 # VoltVault - Entity Relationship Diagram
 
-## Database Schema Overview
-
-This document describes the entity relationships for the VoltVault password management system.
-
----
 
 ## Entity Relationship Diagram
 
