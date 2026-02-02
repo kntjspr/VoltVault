@@ -1,14 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { MOCK_ITEMS } from '../data/mock';
-import type { VaultItem } from '../data/mock';
+import { api } from '../api/client';
 import { TOTPDisplay } from './TOTPDisplay';
 import { Copy, Eye, EyeSlash, CaretRight, Warning, Globe, CreditCard, Note, ArrowLeft } from '@phosphor-icons/react';
 
+interface VaultItem {
+    id: string;
+    type: 'login' | 'card' | 'note';
+    name: string;
+    username?: string;
+    password?: string;
+    url?: string;
+    notes?: string;
+    folderId?: string;
+    favorite: boolean;
+    totpSecret?: string;
+    lastModified: string;
+}
+
 export const VaultList: React.FC = () => {
+    const [items, setItems] = useState<VaultItem[]>([]);
     const [selectedItem, setSelectedItem] = useState<VaultItem | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -16,7 +31,39 @@ export const VaultList: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const filteredItems = MOCK_ITEMS.filter(item =>
+    useEffect(() => {
+        const fetchVault = async () => {
+            try {
+                const result = await api.syncVault();
+                if (result.success) {
+                    const vaultItems: VaultItem[] = result.data.items.map(item => {
+                        const parsed = JSON.parse(item.encrypted_data);
+                        return {
+                            id: item.id,
+                            type: item.item_type === 1 ? 'login' : item.item_type === 3 ? 'card' : 'note',
+                            name: parsed.name,
+                            username: parsed.username,
+                            password: parsed.password,
+                            url: parsed.url,
+                            notes: parsed.notes,
+                            folderId: item.folder_id,
+                            favorite: item.favorite,
+                            totpSecret: parsed.totpSecret,
+                            lastModified: item.revision_date
+                        };
+                    });
+                    setItems(vaultItems);
+                }
+            } catch (err) {
+                console.error('failed to fetch vault:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchVault();
+    }, []);
+
+    const filteredItems = items.filter(item =>
         item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.username?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -34,6 +81,14 @@ export const VaultList: React.FC = () => {
         }
     };
 
+    if (loading) {
+        return (
+            <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#737373' }}>
+                <div className="font-tech" style={{ fontSize: '1.25rem', fontWeight: 700 }}>LOADING VAULT...</div>
+            </div>
+        );
+    }
+
     return (
         <div style={{ padding: '2rem', display: 'flex', height: 'calc(100vh - 80px)', gap: '2rem', position: 'relative' }}>
 
@@ -42,7 +97,6 @@ export const VaultList: React.FC = () => {
                 width: isMobile ? '100%' : '400px',
                 flexDirection: 'column',
                 gap: '1rem',
-                // If mobile and item selected, hide this column (show detail instead)
                 display: (isMobile && selectedItem) ? 'none' : 'flex'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

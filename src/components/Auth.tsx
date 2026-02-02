@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import brandLogo from '../assets/brand_logo.png';
 import { Lightning, ArrowRight } from '@phosphor-icons/react';
+import { api } from '../api/client';
 
 interface AuthProps {
     onLogin: () => void;
@@ -10,14 +11,20 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
-        // Simulate login delay
-        setTimeout(() => {
+        setError('');
+
+        try {
+            await api.login(email, password);
             onLogin();
-        }, 1000);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Login failed');
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -54,6 +61,19 @@ export const Auth: React.FC<AuthProps> = ({ onLogin }) => {
                             Enterprise Access Control
                         </p>
                     </div>
+
+                    {error && (
+                        <div style={{
+                            backgroundColor: 'rgba(237, 28, 36, 0.1)',
+                            border: '1px solid var(--color-ev-red)',
+                            padding: '0.75rem',
+                            color: 'var(--color-ev-red)',
+                            fontSize: '0.875rem',
+                            textAlign: 'center'
+                        }}>
+                            {error}
+                        </div>
+                    )}
 
                     {/* LOGIN FORM */}
                     <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
